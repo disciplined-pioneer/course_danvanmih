@@ -34,6 +34,6 @@ async def build_doctor_card(doctor_id: int) -> str:
     )
 
 def doctor_deleted_message(name_doctor: str) -> str:
-    return f"✅ Доктор {name_doctor} был успешно удалён"
+    return f'✅ Доктор "{name_doctor}" был успешно удалён'
 
 doctor_delete_error = "❌ Ошибка удаления доктора"
