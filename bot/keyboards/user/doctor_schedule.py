@@ -1,5 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from db.models.models import Specializations, Doctors
+from db.models.models import Specializations
 
 
 # Вывод всех специализаций + текст
