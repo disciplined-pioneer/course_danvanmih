@@ -8,16 +8,22 @@ async def buttons_with_all_patients():
 
     if not patients:
         return InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text='🔙 Меню', callback_data='back_start_menu')]]
+            inline_keyboard=[
+                [InlineKeyboardButton(text='➕ Добавить пациента', callback_data='add_patient')],
+                [InlineKeyboardButton(text='🔙 Меню', callback_data='back_start_menu')]
+            ]
         ), '❕ Пока нет доступных пациентов'
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            [InlineKeyboardButton(text='➕ Добавить пациента', callback_data='add_patient')]
+        ] + [
             [InlineKeyboardButton(text=d.full_name, callback_data=f'patient_id:{d.id_patient}')]
             for d in patients
-        ] + [[InlineKeyboardButton(text='🔙 Меню', callback_data='back_start_menu')]]
+        ] + [
+            [InlineKeyboardButton(text='🔙 Меню', callback_data='back_start_menu')]
+        ]
     ), 'Выберите пациента'
-
 
 # Удаление пациента + список пациентов
 async def patient_delete_keyb():
