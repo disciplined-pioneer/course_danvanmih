@@ -1,5 +1,4 @@
-import math
-from datetime import datetime, timedelta
+from datetime import date, time
 from typing import TypeVar, Generic, Sequence
 
 from typing import Optional, List
@@ -168,11 +167,120 @@ class ModelAdmin(Generic[T]):
             return result.scalars().all()
 
 
-# Хранение списка всех пользователей
-class Users(Base, ModelAdmin):
+# Специализация
+class Specializations(Base, ModelAdmin):
 
-    __tablename__ = 'users'
+    __tablename__ = "specializations"
 
-    id: Mapped[intpk]
-    tg_id: Mapped[int] = mapped_column(BigInteger, unique=True)
-    role: Mapped[str]
+    id_specialization: Mapped[intpk]
+    name: Mapped[str]
+
+    doctors: Mapped[list["Doctors"]] = relationship(
+        back_populates="specialization",
+        cascade="all, delete-orphan"
+    )
+
+
+# Врачи
+class Doctors(Base, ModelAdmin):
+
+    __tablename__ = "doctors"
+
+    id_doctor: Mapped[intpk]
+
+    full_name: Mapped[str]
+
+    specialization_id: Mapped[int] = mapped_column(
+        ForeignKey("specializations.id_specialization", ondelete="CASCADE")
+    )
+
+    cabinet: Mapped[str | None]
+
+    specialization: Mapped["Specializations"] = relationship(
+        back_populates="doctors"
+    )
+
+    schedules: Mapped[list["Schedules"]] = relationship(
+        back_populates="doctor",
+        cascade="all, delete-orphan"
+    )
+
+    appointments: Mapped[list["Appointments"]] = relationship(
+        back_populates="doctor",
+        cascade="all, delete-orphan"
+    )
+
+
+# График врачей
+class Schedules(Base, ModelAdmin):
+
+    __tablename__ = "schedules"
+
+    id_schedule: Mapped[intpk]
+
+    doctor_id: Mapped[int] = mapped_column(
+        ForeignKey("doctors.id_doctor", ondelete="CASCADE")
+    )
+
+    day_of_week: Mapped[str]
+
+    start_time: Mapped[time]
+
+    end_time: Mapped[time]
+
+    doctor: Mapped["Doctors"] = relationship(
+        back_populates="schedules"
+    )
+
+
+# Пациенты
+class Patients(Base, ModelAdmin):
+
+    __tablename__ = "patients"
+
+    id_patient: Mapped[intpk]
+
+    full_name: Mapped[str]
+
+    address: Mapped[str]
+
+    birth_date: Mapped[date | None]
+
+    phone: Mapped[str | None]
+
+    appointments: Mapped[list["Appointments"]] = relationship(
+        back_populates="patient",
+        cascade="all, delete-orphan"
+    )
+
+
+# Приёмы
+class Appointments(Base, ModelAdmin):
+
+    __tablename__ = "appointments"
+
+    id_appointment: Mapped[intpk]
+
+    patient_id: Mapped[int] = mapped_column(
+        ForeignKey("patients.id_patient", ondelete="CASCADE")
+    )
+
+    doctor_id: Mapped[int] = mapped_column(
+        ForeignKey("doctors.id_doctor", ondelete="CASCADE")
+    )
+
+    appointment_date: Mapped[date]
+
+    appointment_time: Mapped[time]
+
+    diagnosis: Mapped[Optional[str]] = mapped_column(nullable=True)
+
+    decision: Mapped[Optional[str]] = mapped_column(nullable=True)
+
+    patient: Mapped["Patients"] = relationship(
+        back_populates="appointments"
+    )
+
+    doctor: Mapped["Doctors"] = relationship(
+        back_populates="appointments"
+    )
