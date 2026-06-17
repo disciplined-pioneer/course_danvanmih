@@ -16,7 +16,11 @@ async def start(call: CallbackQuery, state: FSMContext):
     await state.clear()
     await state.update_data(history=[])
 
-    msg = await call.message.edit_text(t.enter_full_name)
+    msg = await call.message.edit_text(
+        text=t.enter_full_name,
+        reply_markup=k.back_user_keyb
+    )
+
 
     await state.set_state(u.DoctorCreateStates.full_name)
     await state.update_data(last_id_message=msg.message_id)
@@ -118,52 +122,62 @@ async def start_time(message: Message, state: FSMContext):
 
     await u.safe_edit(state, message.from_user.id, t.enter_end_time, k.back_kb())
 
-
-# Конец времени работы
 @router.message(u.DoctorCreateStates.end_time)
 async def end_time(message: Message, state: FSMContext):
 
     await message.delete()
+
     if message.text.lower() == "назад":
         return await u.go_back(state, message.from_user.id, t.enter_start_time)
 
     parsed = u.parse_time(message.text)
 
     if not parsed:
-        await u.safe_edit(state, message.from_user.id, t.error_time_format, k.back_kb())
+        await u.safe_edit(
+            state,
+            message.from_user.id,
+            t.error_time_format,
+            k.back_kb()
+        )
         return
 
     data = await state.get_data()
-
     start = data.get("start_time")
 
     # сравнение времени
     if start and parsed.strftime("%H:%M") <= start:
-        await u.safe_edit(state, message.from_user.id, t.error_end_time, k.back_kb())
+        await u.safe_edit(
+            state,
+            message.from_user.id,
+            t.error_end_time,
+            k.back_kb()
+        )
         return
 
+    # сохраняем end_time
     await state.update_data(end_time=parsed.strftime("%H:%M"))
+
+    # обновляем data после сохранения
     data = await state.get_data()
-
-    text = (
-        "Проверь данные:\n\n"
-        f"ФИО: {data.get('full_name')}\n"
-        f"Специализация ID: {data.get('specialization_id')}\n"
-        f"Кабинет: {data.get('cabinet') or '—'}\n"
-        f"График: {data.get('day_of_week')} {data.get('start_time')}-{data.get('end_time')}\n\n"
-        "Подтвердить?"
-    )
-
+    text = t.doctor_card(data)
     await state.set_state(u.DoctorCreateStates.confirm)
 
-    await u.safe_edit(state, message.from_user.id, text, k.confirm_kb())
+    await u.safe_edit(
+        state,
+        message.from_user.id,
+        'Проверь данные:\n\n' + text,
+        k.confirm_kb()
+    )
 
 
 # Добавление врача отменено
 @router.callback_query(F.data == "doc:no")
 async def cancel(call: CallbackQuery, state: FSMContext):
     await state.clear()
-    await call.message.edit_text(t.cancelled)
+    await call.message.edit_text(
+        text=t.cancelled,
+        reply_markup=k.back_user_keyb
+    )
 
 
 # Создать врача - да
@@ -171,13 +185,7 @@ async def cancel(call: CallbackQuery, state: FSMContext):
 async def confirm(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
 
-    text = (
-        "👨‍⚕️ Карточка врача\n"
-        f"ФИО: {data.get('full_name')}\n"
-        f"Специализация ID: {data.get('specialization_id')}\n"
-        f"Кабинет: {data.get('cabinet') or '—'}\n"
-        f"График: {data.get('day_of_week')} {data.get('start_time')}-{data.get('end_time')}"
-    )
+    text = t.doctor_card(data)
 
     await state.clear()
     await call.message.edit_text(text)

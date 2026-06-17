@@ -13,14 +13,11 @@ error_end_time = "❌ Время окончания должно быть поз
 cancelled = "❌ Создание врача отменено"
 no_back = "Вы на первом шаге"
 
-card_title = "👨‍⚕️ Карточка врача"
-
-def doctor_card(full_name, spec_id, cabinet, schedule):
+def doctor_card(data):
     return (
         "👨‍⚕️ Создана новая карточка врача\n"
-        f"{card_title}\n"
-        f"ФИО: {full_name}\n"
-        f"Специализация ID: {spec_id}\n"
-        f"Кабинет: {cabinet or '—'}\n"
-        f"График: {schedule}"
+        f"ФИО: {data.get('full_name')}\n"
+        f"Специализация ID: {data.get('specialization_id')}\n"
+        f"Кабинет: {data.get('cabinet') or '—'}\n"
+        f"График: {data.get('day_of_week')} {data.get('start_time')}-{data.get('end_time')}"
     )

@@ -17,3 +17,9 @@ def confirm_kb():
             ]
         ]
     )
+
+back_user_keyb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text='🔙 Меню', callback_data='back_start_menu')]
+    ]
+)
