@@ -277,7 +277,7 @@ class Appointments(Base, ModelAdmin):
 
     diagnosis: Mapped[Optional[str]] = mapped_column(nullable=True)
 
-    decision: Mapped[Optional[str]] = mapped_column(nullable=True)
+    decision: Mapped[Optional[str]] = mapped_column(nullable=True, default='В ожидании приёма')
 
     patient: Mapped["Patients"] = relationship(
         back_populates="appointments"

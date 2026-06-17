@@ -1,9 +1,9 @@
 enter_full_name = "Введите ФИО пациента:"
 enter_address = "Введите адрес:"
-enter_birth_date = "Введите дату рождения (YYYY-MM-DD):"
+enter_birth_date = "Введите дату рождения (YYYY-MM-DD) (2000-10-10):"
 enter_phone = "Введите телефон:"
 
-error_birth_date = "❌ Неверный формат даты"
+error_birth_date = "❌ Неверный формат даты. Введите в формате (YYYY-MM-DD) (2000-10-10)"
 error_phone = "❌ Неверный телефон (+XXXXXXXXXXX)"
 
 confirm_text = "Проверь данные:\n\n"

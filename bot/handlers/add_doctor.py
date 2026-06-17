@@ -242,7 +242,7 @@ async def confirm(call: types.CallbackQuery, state: FSMContext):
     await state.clear()
     await call.message.edit_text(
         text=text,
-        keyb=k.back_user_keyb
+        reply_markup=k.back_user_keyb
     )
 
 
