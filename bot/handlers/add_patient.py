@@ -10,13 +10,14 @@ from db.models.models import Patients
 router = Router()
 
 
-# Добаваить пациента
+# Добавить пациента
 @router.callback_query(F.data == "add_patient")
 async def start(call: types.CallbackQuery, state: FSMContext):
-    await state.clear()
 
+    await state.clear()
     msg = await call.message.edit_text(
-        "Введите ФИО пациента:",
+        text=t.enter_full_name,
+        reply_markup=k.back_user_keyb
     )
 
     await state.set_state(u.PatientCreateStates.full_name)
@@ -25,7 +26,7 @@ async def start(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-# ФИО пациента
+# ФИО
 @router.message(u.PatientCreateStates.full_name)
 async def full_name(message: types.Message, state: FSMContext):
     await message.delete()
@@ -33,10 +34,15 @@ async def full_name(message: types.Message, state: FSMContext):
     await state.update_data(full_name=message.text)
     await state.set_state(u.PatientCreateStates.address)
 
-    await message.answer("Введите адрес:")
+    await u.safe_edit(
+        state,
+        message.from_user.id,
+        t.enter_address,
+        k.back_kb()
+    )
 
 
-# Адрес пациента
+# Адрес
 @router.message(u.PatientCreateStates.address)
 async def address(message: types.Message, state: FSMContext):
     await message.delete()
@@ -44,7 +50,12 @@ async def address(message: types.Message, state: FSMContext):
     await state.update_data(address=message.text)
     await state.set_state(u.PatientCreateStates.birth_date)
 
-    await message.answer("Введите дату рождения (YYYY-MM-DD):")
+    await u.safe_edit(
+        state,
+        message.from_user.id,
+        t.enter_birth_date,
+        k.back_kb()
+    )
 
 
 # Дата рождения
@@ -53,47 +64,61 @@ async def birth_date(message: types.Message, state: FSMContext):
     await message.delete()
 
     parsed = u.parse_date(message.text)
+
     if not parsed:
-        await message.answer("❌ Формат: YYYY-MM-DD")
+        await u.safe_edit(
+            state,
+            message.from_user.id,
+            t.error_birth_date,
+            k.back_kb()
+        )
         return
 
     await state.update_data(birth_date=parsed)
     await state.set_state(u.PatientCreateStates.phone)
 
-    await message.answer("Введите телефон:")
+    await u.safe_edit(
+        state,
+        message.from_user.id,
+        t.enter_phone,
+        k.back_kb()
+    )
 
 
-# Телефон пациента
+# Телефон
 @router.message(u.PatientCreateStates.phone)
 async def phone(message: types.Message, state: FSMContext):
     await message.delete()
 
     parsed = u.parse_phone(message.text)
+
     if not parsed:
-        await message.answer("❌ Неверный телефон (+XXXXXXXXXXX)")
+        await u.safe_edit(
+            state,
+            message.from_user.id,
+            t.error_phone,
+            k.confirm_kb()
+        )
         return
 
     await state.update_data(phone=parsed)
     await state.set_state(u.PatientCreateStates.confirm)
 
     data = await state.get_data()
-
-    text = (
-        "👤 Новый пациент\n"
-        f"ФИО: {data['full_name']}\n"
-        f"Адрес: {data['address']}\n"
-        f"Дата рождения: {data['birth_date']}\n"
-        f"Телефон: {data['phone']}"
+    text = t.patient_card(data)
+    await u.safe_edit(
+        state,
+        message.from_user.id,
+        t.confirm_text + text,
+        k.confirm_kb()
     )
 
-    await message.answer("Проверь данные:\n\n" + text, reply_markup=k.confirm_kb())
 
-
-# Подтверждение
+# Confirm
 @router.callback_query(F.data == "patient:yes")
 async def confirm(call: types.CallbackQuery, state: FSMContext):
-    data = await state.get_data()
 
+    data = await state.get_data()
     await Patients.add(
         full_name=data["full_name"],
         address=data["address"],
@@ -102,6 +127,18 @@ async def confirm(call: types.CallbackQuery, state: FSMContext):
     )
 
     await state.clear()
-
-    await call.message.edit_text("Пациент создан")
+    await call.message.edit_text(
+        text=t.patient_card(data),
+        reply_markup=k.back_user_keyb
+    )
     await call.answer()
+
+
+# Добавление врача отменено
+@router.callback_query(F.data == "patient:no")
+async def cancel(call: types.CallbackQuery, state: FSMContext):
+    await state.clear()
+    await call.message.edit_text(
+        text=t.cancelled,
+        reply_markup=k.back_user_keyb
+    )

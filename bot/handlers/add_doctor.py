@@ -1,7 +1,6 @@
 from datetime import datetime
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
 
 from utils import add_doctor as u
 from bot.keyboards import add_doctor as k
@@ -14,7 +13,7 @@ router = Router()
 
 # Обработка кнопки "Добавить доктора"
 @router.callback_query(F.data == "add_doctor")
-async def start(call: CallbackQuery, state: FSMContext):
+async def start(call: types.CallbackQuery, state: FSMContext):
     await state.clear()
     await state.update_data(history=[])
 
@@ -29,7 +28,7 @@ async def start(call: CallbackQuery, state: FSMContext):
 
 # Обработка сообщения ФИО
 @router.message(u.DoctorCreateStates.full_name)
-async def full_name(message: Message, state: FSMContext):
+async def full_name(message: types.Message, state: FSMContext):
     await message.delete()
     await state.update_data(full_name=message.text)
 
@@ -52,7 +51,7 @@ async def full_name(message: Message, state: FSMContext):
     u.DoctorCreateStates.specialization_id,
     F.data.startswith("spec_id:")
 )
-async def select_spec(callback: CallbackQuery, state: FSMContext):
+async def select_spec(callback: types.CallbackQuery, state: FSMContext):
     spec_id = int(callback.data.split(":")[1])
     spec_info = await Specializations.get(id_specialization=spec_id)
     await state.update_data(specialization_id=spec_id, name_spec=spec_info.name)
@@ -78,7 +77,7 @@ async def select_spec(callback: CallbackQuery, state: FSMContext):
     u.DoctorCreateStates.specialization_id,
     F.data == "add_spec"
 )
-async def add_spec(callback: CallbackQuery, state: FSMContext):
+async def add_spec(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(u.DoctorCreateStates.new_specialization)
     await u.safe_edit(
         state,
@@ -92,7 +91,7 @@ async def add_spec(callback: CallbackQuery, state: FSMContext):
 
 # Создание новой специализации
 @router.message(u.DoctorCreateStates.new_specialization)
-async def new_spec(message: Message, state: FSMContext):
+async def new_spec(message: types.Message, state: FSMContext):
     await message.delete()
     data = await state.get_data()
     data["history"].append("spec")
@@ -112,7 +111,7 @@ async def new_spec(message: Message, state: FSMContext):
 
 # Обработка номера кабинета
 @router.message(u.DoctorCreateStates.cabinet)
-async def cabinet(message: Message, state: FSMContext):
+async def cabinet(message: types.Message, state: FSMContext):
 
     await message.delete()
     await state.update_data(cabinet=None if message.text == "-" else message.text)
@@ -127,7 +126,7 @@ async def cabinet(message: Message, state: FSMContext):
 
 # Обработка дня недели
 @router.message(u.DoctorCreateStates.day_of_week)
-async def day(message: Message, state: FSMContext):
+async def day(message: types.Message, state: FSMContext):
 
     await message.delete()
     await state.update_data(day_of_week=message.text)
@@ -139,7 +138,7 @@ async def day(message: Message, state: FSMContext):
 
 # Начало времени работа
 @router.message(u.DoctorCreateStates.start_time)
-async def start_time(message: Message, state: FSMContext):
+async def start_time(message: types.Message, state: FSMContext):
 
     await message.delete()
     parsed = u.parse_time(message.text)
@@ -157,7 +156,7 @@ async def start_time(message: Message, state: FSMContext):
 
 # Конец времени работа
 @router.message(u.DoctorCreateStates.end_time)
-async def end_time(message: Message, state: FSMContext):
+async def end_time(message: types.Message, state: FSMContext):
 
     await message.delete()
     parsed = u.parse_time(message.text)
@@ -202,7 +201,7 @@ async def end_time(message: Message, state: FSMContext):
 
 # Добавление врача отменено
 @router.callback_query(F.data == "doc:no")
-async def cancel(call: CallbackQuery, state: FSMContext):
+async def cancel(call: types.CallbackQuery, state: FSMContext):
     await state.clear()
     await call.message.edit_text(
         text=t.cancelled,
@@ -212,7 +211,7 @@ async def cancel(call: CallbackQuery, state: FSMContext):
 
 # Создать врача - да
 @router.callback_query(F.data == "doc:yes")
-async def confirm(call: CallbackQuery, state: FSMContext):
+async def confirm(call: types.CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
     text = t.doctor_card(data)
@@ -249,7 +248,7 @@ async def confirm(call: CallbackQuery, state: FSMContext):
 
 # Обработка кнопки "Назад"
 @router.callback_query(F.data == "doc:back")
-async def back_handler(call: CallbackQuery, state: FSMContext):
+async def back_handler(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     history = data.get("history", [])
 

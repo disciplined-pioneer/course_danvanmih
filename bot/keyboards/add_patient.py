@@ -9,3 +9,16 @@ def confirm_kb():
             ]
         ]
     )
+
+def back_kb():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="⬅ Назад", callback_data="patient:back")]
+        ]
+    )
+
+back_user_keyb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text='🔙 Меню', callback_data='back_start_menu')]
+    ]
+)
