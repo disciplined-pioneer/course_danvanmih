@@ -1,26 +1,34 @@
-from db.models.models import Doctors
+from db.models.models import Doctors, Schedules, Specializations
 
 
 # Текст для вывода карточки врача по его id
 async def build_doctor_card(doctor_id: int) -> str:
-    
+
     doctor = await Doctors.get(id_doctor=doctor_id)
 
     if not doctor:
         return "❌ Врач не найден"
 
-    if doctor.schedules:
+    # расписание — ВСЕ записи
+    schedules = await Schedules.filter(doctor_id=doctor_id)
+
+    if schedules:
         schedule_text = ", ".join(
             f"{s.day_of_week} {s.start_time:%H:%M}-{s.end_time:%H:%M}"
-            for s in doctor.schedules
+            for s in schedules
         )
     else:
         schedule_text = "нет расписания"
 
+    # специализация — ОДНА запись
+    spec = await Specializations.get(id_specialization=doctor.specialization_id)
+
+    spec_name = spec.name if spec else "—"
+
     return (
-        f"👨‍⚕️ Карточка врача\n"
+        "👨‍⚕️ Карточка врача\n"
         f"ФИО: {doctor.full_name}\n"
-        f"Специализация: {doctor.specialization.name if doctor.specialization else '—'}\n"
+        f"Специализация: {spec_name}\n"
         f"Кабинет: {doctor.cabinet or '—'}\n"
         f"График работы: {schedule_text}"
     )

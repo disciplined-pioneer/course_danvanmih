@@ -1,10 +1,5 @@
 from aiogram import Router, F, types
-from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.base import StorageKey
-
-from core.bot import bot
-from settings import settings
 
 from bot.templates.user import doctor_search as t
 from bot.keyboards.user import doctor_search as k
