@@ -97,7 +97,7 @@ async def phone(message: types.Message, state: FSMContext):
             state,
             message.from_user.id,
             t.error_phone,
-            k.confirm_kb()
+            k.back_kb()
         )
         return
 
@@ -142,3 +142,40 @@ async def cancel(call: types.CallbackQuery, state: FSMContext):
         text=t.cancelled,
         reply_markup=k.back_user_keyb
     )
+
+
+# Обработка кнопки "Назад" (пациенты)
+@router.callback_query(F.data == "patient:back")
+async def back_handler(call: types.CallbackQuery, state: FSMContext):
+
+    current_state = await state.get_state()
+
+    # rollback логики пациента
+    if current_state == u.PatientCreateStates.address.state:
+        await state.set_state(u.PatientCreateStates.full_name)
+        text = t.enter_full_name
+
+    elif current_state == u.PatientCreateStates.birth_date.state:
+        await state.set_state(u.PatientCreateStates.address)
+        text = t.enter_address
+
+    elif current_state == u.PatientCreateStates.phone.state:
+        await state.set_state(u.PatientCreateStates.birth_date)
+        text = t.enter_birth_date
+
+    elif current_state == u.PatientCreateStates.confirm.state:
+        await state.set_state(u.PatientCreateStates.phone)
+        text = t.enter_phone
+
+    else:
+        await call.answer("Нельзя вернуться назад")
+        return
+
+    await u.safe_edit(
+        state,
+        call.from_user.id,
+        text,
+        k.back_kb()
+    )
+
+    await call.answer()
