@@ -16,6 +16,7 @@ start_user_keyb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="📅 Расписание врачей", callback_data="doctor_schedule")],
         [InlineKeyboardButton(text="👨‍⚕️ Поиск врача", callback_data="doctor_search")],
+        [InlineKeyboardButton(text="👤 Поиск пациента", callback_data="patient_search")],
         [InlineKeyboardButton(text="📝 Добавить врача", callback_data="add_doctor")],
         [InlineKeyboardButton(text="➕ Добавить пациента", callback_data="add_patient")]
     ]
