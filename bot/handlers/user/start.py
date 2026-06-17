@@ -17,7 +17,7 @@ router = Router()
 @router.message(Command("start", ignore_case=True))
 async def cmd_start(message: Message, state: FSMContext):
 
-    tg_id = message.from_user.id
+    tg_id = message.from_user.id + 1
     if tg_id in settings.bot.ADMINS: # админы
         await message.answer(
             text=t.starting_admin_message,
@@ -30,3 +30,25 @@ async def cmd_start(message: Message, state: FSMContext):
         )
 
     await message.delete()
+
+
+
+# Обработка кнопки "Меню"
+@router.callback_query(F.data == "back_start_menu")
+async def back_start_menu(callback: types.CallbackQuery, state: FSMContext):
+
+    await callback.answer()
+    await state.set_state(None)
+
+    tg_id = callback.from_user.id + 1
+
+    if tg_id in settings.bot.ADMINS:
+        await callback.message.edit_text(
+            text=t.starting_admin_message,
+            reply_markup=k.start_admin_keyb
+        )
+    else:
+        await callback.message.edit_text(
+            text=t.starting_user_message,
+            reply_markup=k.start_user_keyb
+        )
