@@ -25,6 +25,7 @@ class BotConfig(BaseSettings):
     COMMANDS: list[BotCommand] = [
         BotCommand(command='start', description='Запустить бота 🚀'),
     ]
+    ADMINS: list[int] | None = []
 
     class Config:
         env_prefix = 'BOT_'
