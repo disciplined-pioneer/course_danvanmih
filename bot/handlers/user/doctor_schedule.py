@@ -26,3 +26,30 @@ async def doctor_schedule(callback: types.CallbackQuery, state: FSMContext):
         text=text,
         reply_markup=keyb
     )
+
+
+# Обработка кнопки выбора специальности
+@router.callback_query(F.data.startswith("spec_id:"))
+async def spec_id(callback: types.CallbackQuery, state: FSMContext):
+
+    spec_id = int(callback.data.split(':')[1])
+    await callback.message.edit_text(
+        text=await t.list_doctors_spec(spec_id),
+        reply_markup=k.back_list_specializations
+    )
+    
+    await state.update_data(spec_id=spec_id)
+
+
+# Обработка кнопки выбора врача
+@router.callback_query(F.data.startswith("doctor_id:"))
+async def doctor_id_id(callback: types.CallbackQuery, state: FSMContext):
+
+    doctor_id_id = int(callback.data.split(':')[1])
+    keyb, text = await k.buttons_with_doctors_by_specialization(spec_id=spec_id)
+    await callback.message.edit_text(
+        text=text,
+        reply_markup=keyb
+    )
+    
+    await state.update_data(spec_id=spec_id)
