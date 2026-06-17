@@ -31,9 +31,6 @@ async def start(call: CallbackQuery, state: FSMContext):
 async def full_name(message: Message, state: FSMContext):
 
     await message.delete()
-    if message.text.lower() == "назад":
-        return await u.go_back(state, message.from_user.id, t.enter_full_name)
-
     await state.update_data(full_name=message.text)
 
     data = await state.get_data()
@@ -45,14 +42,11 @@ async def full_name(message: Message, state: FSMContext):
     await u.safe_edit(state, message.from_user.id, t.enter_spec_id, k.back_kb())
 
 
-# Обработка сообщения специализации
+# Обработка специализации
 @router.message(u.DoctorCreateStates.specialization_id)
 async def spec(message: Message, state: FSMContext):
 
     await message.delete()
-    if message.text.lower() == "назад":
-        return await u.go_back(state, message.from_user.id, t.enter_full_name)
-
     if not message.text.isdigit():
         await u.safe_edit(state, message.from_user.id, t.error_id, k.back_kb())
         return
@@ -64,7 +58,6 @@ async def spec(message: Message, state: FSMContext):
     await state.update_data(history=data["history"])
 
     await state.set_state(u.DoctorCreateStates.cabinet)
-
     await u.safe_edit(state, message.from_user.id, t.enter_cabinet, k.back_kb())
 
 
@@ -73,9 +66,6 @@ async def spec(message: Message, state: FSMContext):
 async def cabinet(message: Message, state: FSMContext):
 
     await message.delete()
-    if message.text.lower() == "назад":
-        return await u.go_back(state, message.from_user.id, t.enter_spec_id)
-
     await state.update_data(cabinet=None if message.text == "-" else message.text)
 
     data = await state.get_data()
@@ -92,9 +82,6 @@ async def cabinet(message: Message, state: FSMContext):
 async def day(message: Message, state: FSMContext):
 
     await message.delete()
-    if message.text.lower() == "назад":
-        return await u.go_back(state, message.from_user.id, t.enter_cabinet)
-
     await state.update_data(day_of_week=message.text)
 
     await state.set_state(u.DoctorCreateStates.start_time)
@@ -107,9 +94,6 @@ async def day(message: Message, state: FSMContext):
 async def start_time(message: Message, state: FSMContext):
 
     await message.delete()
-    if message.text.lower() == "назад":
-        return await u.go_back(state, message.from_user.id, t.enter_day)
-
     parsed = u.parse_time(message.text)
 
     if not parsed:
@@ -122,14 +106,12 @@ async def start_time(message: Message, state: FSMContext):
 
     await u.safe_edit(state, message.from_user.id, t.enter_end_time, k.back_kb())
 
+
+# Конец времени работа
 @router.message(u.DoctorCreateStates.end_time)
 async def end_time(message: Message, state: FSMContext):
 
     await message.delete()
-
-    if message.text.lower() == "назад":
-        return await u.go_back(state, message.from_user.id, t.enter_start_time)
-
     parsed = u.parse_time(message.text)
 
     if not parsed:
