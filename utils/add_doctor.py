@@ -8,8 +8,9 @@ from core.bot import bot
 class DoctorCreateStates(StatesGroup):
     full_name = State()
     specialization_id = State()
-    cabinet = State()
     day_of_week = State()
+    new_specialization = State()
+    cabinet = State()
     start_time = State()
     end_time = State()
     confirm = State()

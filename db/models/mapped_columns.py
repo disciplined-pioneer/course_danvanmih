@@ -8,7 +8,7 @@ from sqlalchemy import BigInteger, DateTime, String, text, Float
 # Определение столбцов без использования Annotated
 intpk = Annotated[
     int,
-    mapped_column(primary_key=True)
+    mapped_column(primary_key=True, autoincrement=True, init=False)
 ]
 
 floatp = mapped_column(Float)

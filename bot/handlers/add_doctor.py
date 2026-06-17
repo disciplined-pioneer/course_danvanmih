@@ -1,3 +1,4 @@
+from datetime import datetime
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
@@ -5,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from utils import add_doctor as u
 from bot.keyboards import add_doctor as k
 from bot.templates import add_doctor as t
-
+from db.models.models import Doctors, Specializations, Schedules
 
 router = Router()
 
@@ -21,7 +22,6 @@ async def start(call: CallbackQuery, state: FSMContext):
         reply_markup=k.back_user_keyb
     )
 
-
     await state.set_state(u.DoctorCreateStates.full_name)
     await state.update_data(last_id_message=msg.message_id)
 
@@ -29,7 +29,6 @@ async def start(call: CallbackQuery, state: FSMContext):
 # Обработка сообщения ФИО
 @router.message(u.DoctorCreateStates.full_name)
 async def full_name(message: Message, state: FSMContext):
-
     await message.delete()
     await state.update_data(full_name=message.text)
 
@@ -38,27 +37,76 @@ async def full_name(message: Message, state: FSMContext):
     await state.update_data(history=data["history"])
 
     await state.set_state(u.DoctorCreateStates.specialization_id)
-
-    await u.safe_edit(state, message.from_user.id, t.enter_spec_id, k.back_kb())
+    kb, text = await k.buttons_with_all_specializations()
+    await u.safe_edit(
+        state,
+        message.from_user.id,
+        text,
+        kb
+    )
 
 
 # Обработка специализации
-@router.message(u.DoctorCreateStates.specialization_id)
-async def spec(message: Message, state: FSMContext):
-
-    await message.delete()
-    if not message.text.isdigit():
-        await u.safe_edit(state, message.from_user.id, t.error_id, k.back_kb())
-        return
-
-    await state.update_data(specialization_id=int(message.text))
+@router.callback_query(
+    u.DoctorCreateStates.specialization_id,
+    F.data.startswith("spec_id:")
+)
+async def select_spec(callback: CallbackQuery, state: FSMContext):
+    spec_id = int(callback.data.split(":")[1])
+    spec_info = await Specializations.get(id_specialization=spec_id)
+    await state.update_data(specialization_id=spec_id, name_spec=spec_info.name)
 
     data = await state.get_data()
     data["history"].append("spec")
     await state.update_data(history=data["history"])
 
     await state.set_state(u.DoctorCreateStates.cabinet)
-    await u.safe_edit(state, message.from_user.id, t.enter_cabinet, k.back_kb())
+
+    await u.safe_edit(
+        state,
+        callback.from_user.id,
+        t.enter_cabinet,
+        k.back_kb()
+    )
+
+    await callback.answer()
+
+
+# Добавить специализацию
+@router.callback_query(
+    u.DoctorCreateStates.specialization_id,
+    F.data == "add_spec"
+)
+async def add_spec(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(u.DoctorCreateStates.new_specialization)
+    await u.safe_edit(
+        state,
+        callback.from_user.id,
+        t.enter_specialization_name_text,
+        k.back_kb()
+    )
+
+    await callback.answer()
+
+
+# Создание новой специализации
+@router.message(u.DoctorCreateStates.new_specialization)
+async def new_spec(message: Message, state: FSMContext):
+    await message.delete()
+    data = await state.get_data()
+    data["history"].append("spec")
+    data.pop("specialization_id", None)
+    data["name_spec"] = message.text
+
+    await state.set_data(data)
+    await state.set_state(u.DoctorCreateStates.cabinet)
+
+    await u.safe_edit(
+        state,
+        message.from_user.id,
+        t.enter_cabinet,
+        k.back_kb()
+    )
 
 
 # Обработка номера кабинета
@@ -73,7 +121,6 @@ async def cabinet(message: Message, state: FSMContext):
     await state.update_data(history=data["history"])
 
     await state.set_state(u.DoctorCreateStates.day_of_week)
-
     await u.safe_edit(state, message.from_user.id, t.enter_day, k.back_kb())
 
 
@@ -165,12 +212,38 @@ async def cancel(call: CallbackQuery, state: FSMContext):
 # Создать врача - да
 @router.callback_query(F.data == "doc:yes")
 async def confirm(call: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
 
+    data = await state.get_data()
     text = t.doctor_card(data)
+    
+    # Добавляем новую специальность
+    spec_id = data.get("specialization_id", None)
+    if not spec_id:
+        spec = await Specializations.add(name=data.get("name_spec", None))
+        spec_id = spec.id_specialization
+
+    # Добавляем доктора
+    doctor_info = await Doctors.add(
+        full_name=data.get('full_name', None),
+        specialization_id=spec_id,
+        cabinet=data.get('cabinet', None),
+    )
+
+    # Добавляем расписание
+    start_time = datetime.strptime(data["start_time"], "%H:%M").time()
+    end_time = datetime.strptime(data["end_time"], "%H:%M").time()
+    await Schedules.add(
+        doctor_id=doctor_info.id_doctor,
+        day_of_week=data.get('full_name', None),
+        start_time=start_time,
+        end_time=end_time
+    )
 
     await state.clear()
-    await call.message.edit_text(text)
+    await call.message.edit_text(
+        text=text,
+        keyb=back_user_keyb
+    )
 
 
 # Обработка кнопки "Назад"
@@ -183,7 +256,6 @@ async def back_handler(call: CallbackQuery, state: FSMContext):
         await call.answer(t.no_back)
         return
 
-    history.pop()
     await state.update_data(history=history)
 
     current_state = await state.get_state()
@@ -192,10 +264,6 @@ async def back_handler(call: CallbackQuery, state: FSMContext):
     if current_state == u.DoctorCreateStates.specialization_id.state:
         await state.set_state(u.DoctorCreateStates.full_name)
         text = t.enter_full_name
-
-    elif current_state == u.DoctorCreateStates.cabinet.state:
-        await state.set_state(u.DoctorCreateStates.specialization_id)
-        text = t.enter_spec_id
 
     elif current_state == u.DoctorCreateStates.day_of_week.state:
         await state.set_state(u.DoctorCreateStates.cabinet)
@@ -209,8 +277,14 @@ async def back_handler(call: CallbackQuery, state: FSMContext):
         await state.set_state(u.DoctorCreateStates.start_time)
         text = t.enter_start_time
 
+    elif current_state == u.DoctorCreateStates.new_specialization.state or current_state == u.DoctorCreateStates.cabinet.state:
+        await state.set_state(u.DoctorCreateStates.specialization_id)
+        kb, text = await k.buttons_with_all_specializations()
+        await u.safe_edit(state, call.from_user.id, text, kb)
+        await call.answer()
+        return
     else:
-        await call.answer("Нельзя вернуться дальше")
+        await call.answer("Нельзя вернуться назад")
         return
 
     await u.safe_edit(state, call.from_user.id, text, k.back_kb())

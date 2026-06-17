@@ -37,15 +37,17 @@ class ModelAdmin(Generic[T]):
             return obj
 
     @classmethod
-    async def add(cls, **kwargs) -> None:
+    async def add(cls, **kwargs):
         """
         # Создает новый объект.
         :param kwargs: Поля и значения для объекта.
         """
-
         async with async_db_session() as session:
-            session.add(cls(**kwargs))
+            obj = cls(**kwargs)
+            session.add(obj)
             await session.commit()
+            await session.refresh(obj)  # важно — чтобы получить ID
+            return obj
 
     async def update(self, **kwargs) -> None:
         """

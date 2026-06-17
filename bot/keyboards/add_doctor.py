@@ -1,3 +1,4 @@
+from db.models.models import Specializations
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 def back_kb():
@@ -23,3 +24,18 @@ back_user_keyb = InlineKeyboardMarkup(
         [InlineKeyboardButton(text='🔙 Меню', callback_data='back_start_menu')]
     ]
 )
+
+# Вывод всех специализаций + текст
+async def buttons_with_all_specializations():
+    specs = await Specializations.all()
+
+    keyboard = (
+        [[InlineKeyboardButton(text="➕ Добавить новую специализацию", callback_data="add_spec")]] +
+        ([[InlineKeyboardButton(text=s.name, callback_data=f"spec_id:{s.id_specialization}")] for s in specs]
+         if specs else []) +
+        [[InlineKeyboardButton(text="⬅ Назад", callback_data="doc:back")]]
+    )
+
+    text = "Выберите специализацию врача" if specs else "❕ Пока нет доступных специализаций"
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard), text
