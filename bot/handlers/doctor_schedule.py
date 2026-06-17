@@ -1,8 +1,8 @@
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 
-from bot.templates.user import doctor_schedule as t
-from bot.keyboards.user import doctor_schedule as k
+from bot.templates import doctor_schedule as t
+from bot.keyboards import doctor_schedule as k
 
 
 router = Router()

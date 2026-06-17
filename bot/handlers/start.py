@@ -4,8 +4,8 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 from core.bot import bot
-from bot.templates.user import start as t
-from bot.keyboards.user import start as k
+from bot.templates import start as t
+from bot.keyboards import start as k
 
 from settings import settings
 

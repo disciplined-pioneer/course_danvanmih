@@ -1,7 +1,7 @@
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 
-from bot.handlers.user.start import cmd_start
+from bot.handlers.start import cmd_start
 
 
 router = Router()
