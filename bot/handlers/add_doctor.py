@@ -234,7 +234,7 @@ async def confirm(call: types.CallbackQuery, state: FSMContext):
     end_time = datetime.strptime(data["end_time"], "%H:%M").time()
     await Schedules.add(
         doctor_id=doctor_info.id_doctor,
-        day_of_week=data.get('full_name', None),
+        day_of_week=data.get('day_of_week', None),
         start_time=start_time,
         end_time=end_time
     )
