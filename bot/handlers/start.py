@@ -32,7 +32,6 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.delete()
 
 
-
 # Обработка кнопки "Меню"
 @router.callback_query(F.data == "back_start_menu")
 async def back_start_menu(callback: types.CallbackQuery, state: FSMContext):
