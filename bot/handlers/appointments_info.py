@@ -4,6 +4,8 @@ from aiogram.fsm.context import FSMContext
 from bot.templates import appointments_info as t
 from bot.keyboards import appointments_info as k
 
+from db.models.models import Appointments
+
 
 router = Router()
 
@@ -52,3 +54,18 @@ async def app_id_info(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(app_id=app_id)
     await callback.answer()
 
+
+# Обработка кнопки "Удалить приём"
+@router.callback_query(F.data == "delete_appointment")
+async def delete_appointment(callback: types.CallbackQuery, state: FSMContext):
+
+    data = await state.get_data()
+    app_id = data.get('app_id')
+
+    app_info = await Appointments.get(id_appointment=app_id)
+    await app_info.delete()
+
+    await callback.message.edit_text(
+        text=t.delete_app_text,
+        reply_markup=k.back_user_keyb
+    )

@@ -23,3 +23,5 @@ async def build_appointment_text(appointment_id: int):
     )
 
     return text
+
+delete_app_text = 'Приём был удалён'
