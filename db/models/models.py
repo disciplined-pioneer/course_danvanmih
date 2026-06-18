@@ -49,15 +49,18 @@ class ModelAdmin(Generic[T]):
             await session.refresh(obj)  # важно — чтобы получить ID
             return obj
 
-    async def update(self, **kwargs) -> None:
+    async def update(obj, **kwargs) -> None:
         """
         # Обновляет текущий объект.
         :param kwargs: Поля и значения, которые надо поменять.
         """
+        pk_column = obj.__class__.__mapper__.primary_key[0]
+        pk_value = getattr(obj, pk_column.name)
+
         async with async_db_session() as session:
             await session.execute(
-                sqlalchemy_update(self.__class__)
-                .where(self.__class__.id_patient == self.id_patient)
+                sqlalchemy_update(obj.__class__)
+                .where(pk_column == pk_value)
                 .values(**kwargs)
             )
             await session.commit()

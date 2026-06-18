@@ -37,3 +37,7 @@ def doctor_deleted_message(name_doctor: str) -> str:
     return f'✅ Доктор "{name_doctor}" был успешно удалён'
 
 doctor_delete_error = "❌ Ошибка удаления доктора"
+
+new_cabinet_text = 'Введите новый номер кабинета'
+
+new_doctor_cabinet = 'Кабинет доктора был изменён'
