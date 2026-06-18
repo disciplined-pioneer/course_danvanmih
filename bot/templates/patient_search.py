@@ -31,3 +31,7 @@ error_datetime_format = "❌ Формат: YYYY-MM-DD HH:MM"
 appointment_created = "✅ Приём создан"
 
 enter_datetime = "Введите дату и время:\nФормат: YYYY-MM-DD HH:MM"
+
+new_address_text = 'Введите новый адрес клиента'
+
+new_patient_address = 'Зарегистрирован новый адрес пациента'

@@ -54,10 +54,11 @@ class ModelAdmin(Generic[T]):
         # Обновляет текущий объект.
         :param kwargs: Поля и значения, которые надо поменять.
         """
-
         async with async_db_session() as session:
             await session.execute(
-                sqlalchemy_update(self.__class__), [{"id": self.id, **kwargs}]
+                sqlalchemy_update(self.__class__)
+                .where(self.__class__.id_patient == self.id_patient)
+                .values(**kwargs)
             )
             await session.commit()
 

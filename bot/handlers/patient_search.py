@@ -6,7 +6,7 @@ from utils import patient_search as u
 from bot.templates import patient_search as t
 from bot.keyboards import patient_search as k
 
-from db.models.models import Appointments
+from db.models.models import Appointments, Patients
 
 
 router = Router()
@@ -36,6 +36,37 @@ async def patient_id(callback: types.CallbackQuery, state: FSMContext):
         reply_markup=await k.patient_delete_keyb()
     )
     await state.update_data(patient_id=patient_id)
+
+
+# Обработка кнопки "Изменить адрес"
+@router.callback_query(F.data == "change_address")
+async def change_address(callback: types.CallbackQuery, state: FSMContext):
+
+    await callback.answer()
+    data = await state.get_data()
+    patient_id = data.get('patient_id')
+
+    msg = await callback.message.edit_text(
+        text=t.new_address_text,
+        reply_markup=await k.info_patient_keyb(patient_id=patient_id)
+    )
+
+    await state.set_state(u.AppointmentStates.new_address)
+    await state.update_data(last_id_message=msg.message_id)
+
+
+# Обработка нового адреса
+@router.message(u.AppointmentStates.new_address)
+async def new_address(message: types.Message, state: FSMContext):
+
+    await message.delete()
+    data = await state.get_data()
+    patient_id = data.get('patient_id')
+    patient_info = await Patients.get(id_patient=patient_id)
+    await patient_info.update(address=message.text.strip())
+    
+    await u.safe_edit(state, message.from_user.id, t.new_patient_address, k.back_user_keyb)
+    await state.clear()
 
 
 # Удаление пациента

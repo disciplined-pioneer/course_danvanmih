@@ -30,6 +30,7 @@ async def patient_delete_keyb():
     keyb = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="❌ Удалить пациента", callback_data=f"delete_patient")],
+            [InlineKeyboardButton(text="✏️ Изменить адрес", callback_data=f"change_address")],
             [InlineKeyboardButton(text="➕ Добавить приём", callback_data=f"add_appointment")],
             [InlineKeyboardButton(text="🔙 К списку пациентов", callback_data="patient_search")]
         ]
@@ -47,6 +48,14 @@ async def buttons_with_all_doctors(patient_id:int):
             [InlineKeyboardButton(text='🔙 Назад',callback_data=f'patient_id:{patient_id}')]
         ]
     ),'Выберите врача для записи на приём'
+
+async def info_patient_keyb(patient_id:int):
+    keyb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text='🔙 Назад', callback_data=f'patient_id:{patient_id}')]
+        ]
+    )
+    return keyb
 
 back_user_keyb = InlineKeyboardMarkup(
     inline_keyboard=[

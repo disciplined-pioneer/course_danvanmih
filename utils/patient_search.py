@@ -6,6 +6,7 @@ from core.bot import bot
 
 class AppointmentStates(StatesGroup):
     datetime = State()
+    new_address = State()
 
 # Удаление всей информации о врача по его id
 async def delete_info_patient(patient_id: int):
