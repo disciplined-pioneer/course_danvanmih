@@ -27,10 +27,28 @@ async def appointments_info(callback: types.CallbackQuery, state: FSMContext):
 async def doctor_id_appts(callback: types.CallbackQuery, state: FSMContext):
 
     doctor_id_appts = int(callback.data.split(':')[1])
-    text = await t.build_doctor_appointments_text(doctor_id_appts)
+    text, keyb = await k.get_doctor_appointments(doctor_id_appts)
 
     await callback.message.edit_text(
         text=text,
-        reply_markup=k.back_user_keyb
+        reply_markup=keyb
     )
+    await state.update_data(doctor_id_appts=doctor_id_appts)
     await callback.answer()
+
+
+# Переходим по приёму
+@router.callback_query(F.data.startswith("app_id_info:"))
+async def app_id_info(callback: types.CallbackQuery, state: FSMContext):
+
+    data = await state.get_data()
+    app_id = int(callback.data.split(':')[1])
+    doctor_id_appts = data.get('doctor_id_appts')
+    
+    await callback.message.edit_text(
+        text=await t.build_appointment_text(app_id),
+        reply_markup=await k.doctor_appointment_actions_kb(doctor_id_appts)
+    )
+    await state.update_data(app_id=app_id)
+    await callback.answer()
+
