@@ -7,6 +7,9 @@ from core.bot import bot
 class DoctorInfoStates(StatesGroup):
     new_cabinet = State()
 
+class EditState(StatesGroup):
+    value = State()
+
 # Удаление всей информации о врача по его id
 async def delete_info_doctor(doctor_id: int):
 

@@ -19,7 +19,6 @@ async def search_doctor(
     command: CommandObject
 ):
     fio = command.args
-
     if not fio:
         await message.answer(
             "Укажите ФИО врача:\n/search_doctor Иванов Иван Иванович"
@@ -28,6 +27,11 @@ async def search_doctor(
     
     # Поиск всех врачей по фамилии
     doctors_info = await Doctors.filter(full_name=fio)
+    if not doctors_info:
+        await message.answer(
+            text='Доктор не был найден'
+        )
+        return
     for doc in doctors_info:
         await message.answer(
             text=await t.format_doctor_card(doc),

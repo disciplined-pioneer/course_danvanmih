@@ -48,6 +48,18 @@ class ModelAdmin(Generic[T]):
             await session.commit()
             await session.refresh(obj)  # важно — чтобы получить ID
             return obj
+        
+    @classmethod
+    async def update_obj(cls, obj_id: int, **kwargs) -> None:
+        pk_column = cls.__mapper__.primary_key[0]
+
+        async with async_db_session() as session:
+            await session.execute(
+                sqlalchemy_update(cls)
+                .where(pk_column == obj_id)
+                .values(**kwargs)
+            )
+            await session.commit()
 
     async def update(obj, **kwargs) -> None:
         """

@@ -1,6 +1,39 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from db.models.models import Specializations, Doctors
 
+
+DOCTOR_FIELDS = {
+    "full_name": {
+        "label": "ФИО",
+        "type": "text"
+    },
+    "cabinet": {
+        "label": "Кабинет",
+        "type": "text"
+    },
+    "specialization_id": {
+        "label": "Специализация",
+        "type": "select",
+        "options_source": "specializations"
+    },
+}
+
+SCHEDULE_FIELDS = {
+    "day_of_week": {
+        "label": "День недели",
+        "type": "select",
+        "options_source": "weekdays"
+    },
+    "start_time": {
+        "label": "Начало",
+        "type": "time"
+    },
+    "end_time": {
+        "label": "Конец",
+        "type": "time"
+    },
+}
+
 async def buttons_with_all_doctors():
     doctors = await Doctors.all()
 
@@ -23,19 +56,40 @@ async def buttons_with_all_doctors():
         ]
     ), 'Выберите врача'
 
-# Удаление врача + список врачей
+
+def build_edit_fields_keyboard(obj_id: int, fields: dict, prefix: str):
+    return [
+        [
+            InlineKeyboardButton(
+                text=v["label"],
+                callback_data=f"{prefix}:{obj_id}:{k}"
+            )
+        ]
+        for k, v in fields.items()
+    ]
+
 async def doctor_edit_keyb(doctor_id: int):
-    keyb = InlineKeyboardMarkup(
+    fields = build_edit_fields_keyboard(
+        doctor_id,
+        DOCTOR_FIELDS,
+        "edit_doctor"
+    )
+
+    return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="✏️ ФИО", callback_data=f"edit_doctor:{doctor_id}:full_name")],
-            [InlineKeyboardButton(text="✏️ Кабинет", callback_data=f"edit_doctor:{doctor_id}:cabinet")],
-            [InlineKeyboardButton(text="✏️ Телефон", callback_data=f"edit_doctor:{doctor_id}:phone")],
-            [InlineKeyboardButton(text="✏️ Специализация", callback_data=f"edit_doctor:{doctor_id}:specialization")],
-            [InlineKeyboardButton(text="❌ Удалить врача", callback_data=f"delete_doctor:{doctor_id}")],
-            [InlineKeyboardButton(text="🔙 К списку врачей", callback_data="doctor_search")]
+            [InlineKeyboardButton(
+                text="❌ Удалить врача",
+                callback_data=f"delete_doctor:{doctor_id}"
+            )]
+        ]
+        + fields
+        + [
+            [InlineKeyboardButton(
+                text="🔙 К списку врачей",
+                callback_data="doctor_search"
+            )]
         ]
     )
-    return keyb
 
 async def info_doctor_keyb(doctor_id:int):
     keyb = InlineKeyboardMarkup(

@@ -5,7 +5,7 @@ from utils import doctor_search as u
 from bot.templates import doctor_search as t
 from bot.keyboards import doctor_search as k
 
-from db.models.models import Doctors
+from db.models.models import Doctors, Schedules
 
 
 router = Router()
@@ -36,34 +36,78 @@ async def doctor_id(callback: types.CallbackQuery, state: FSMContext):
     )
     await state.update_data(doctor_id=doctor_id)
 
+@router.callback_query(F.data.startswith(("edit_doctor", "edit_schedule")))
+async def start_edit(callback: types.CallbackQuery, state: FSMContext):
 
-# Обработка кнопки "Изменить кабинет"
-@router.callback_query(F.data.startswith("change_cabinet:"))
-async def change_cabinet(callback: types.CallbackQuery, state: FSMContext):
+    prefix, obj_id, field = callback.data.split(":")
 
-    await callback.answer()
-    doctor_id = int(callback.data.split(':')[1])
+    obj_id = int(obj_id)
 
-    msg = await callback.message.edit_text(
-        text=t.new_cabinet_text,
-        reply_markup=await k.info_doctor_keyb(doctor_id=doctor_id)
+    if prefix == "edit_doctor":
+        fields = k.DOCTOR_FIELDS
+    else:
+        fields = k.SCHEDULE_FIELDS
+
+    field_info = fields[field]
+
+    await state.update_data(
+        obj_id=obj_id,
+        field=field,
+        model=prefix
     )
 
-    await state.set_state(u.DoctorInfoStates.new_cabinet)
-    await state.update_data(last_id_message=msg.message_id)
+    await state.set_state(u.EditState.value)
+    await callback.message.edit_text(
+        f'Введите новое значение для: "{field_info["label"]}"'
+    )
 
+@router.message(u.EditState.value)
+async def process_edit_value(message: types.Message, state: FSMContext):
 
-# Обработка нового номера кабинета
-@router.message(u.DoctorInfoStates.new_cabinet)
-async def new_cabinet(message: types.Message, state: FSMContext):
-
-    await message.delete()
     data = await state.get_data()
-    doctor_id = data.get('doctor_id')
-    doctor_info = await Doctors.get(id_doctor=doctor_id)
-    await doctor_info.update(cabinet=message.text.strip())
-    
-    await u.safe_edit(state, message.from_user.id, t.new_doctor_cabinet, k.back_user_keyb)
+
+    obj_id = data["obj_id"]
+    field = data["field"]
+    model = data["model"]
+
+    value = message.text.strip()
+
+    if model == "edit_doctor":
+        fields = k.DOCTOR_FIELDS
+        model = Doctors
+
+    elif model == "edit_schedule":
+        fields = k.SCHEDULE_FIELDS
+        model = Schedules
+
+    else:
+        await message.answer("❌ Неизвестная модель")
+        await state.clear()
+        return
+
+    field_info = fields[field]
+    field_type = field_info.get("type", "text")
+
+    try:
+        if field_type == "int":
+            value = int(value)
+
+        elif field_type == "time":
+            from datetime import time as dt_time
+            h, m = map(int, value.split(":"))
+            value = dt_time(h, m)
+
+        elif field_type == "select":
+            value = int(value)
+
+    except Exception:
+        await message.answer("❌ Неверный формат данных")
+        return
+
+    await model.update_obj(obj_id, **{field: value})
+
+    await message.answer(f"✅ Обновлено: {field_info['label']}")
+
     await state.clear()
 
 
