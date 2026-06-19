@@ -120,7 +120,7 @@ async def select_doctor(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(doctor_id=doctor_id, last_id_message=msg.message_id)
 
 
-# Обработка времени и даты
+# Обработка времени и даты приёма
 @router.message(u.AppointmentStates.datetime)
 async def set_datetime(message: types.Message, state: FSMContext):
 
@@ -132,8 +132,8 @@ async def set_datetime(message: types.Message, state: FSMContext):
         await u.safe_edit(state, message.from_user.id, t.error_datetime_format, k.back_doctor_list_keyb)
         return
 
+    # Добавляем данные о приёме в БД
     data = await state.get_data()
-
     await Appointments.add(
         patient_id=data["patient_id"],
         doctor_id=data["doctor_id"],

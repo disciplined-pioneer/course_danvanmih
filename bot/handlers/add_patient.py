@@ -134,7 +134,7 @@ async def confirm(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-# Добавление врача отменено
+# Добавление пациента отменено
 @router.callback_query(F.data == "patient:no")
 async def cancel(call: types.CallbackQuery, state: FSMContext):
     await state.clear()
