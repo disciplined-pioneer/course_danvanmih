@@ -5,7 +5,7 @@ from aiogram.types import Message
 
 from db.models.models import Doctors, Patients
 from bot.templates import commands as t
-from bot.keyboards.doctor_search import doctor_delete_keyb
+from bot.keyboards.doctor_search import doctor_edit_keyb
 from bot.keyboards.patient_search import patient_delete_keyb
 
 
@@ -31,7 +31,7 @@ async def search_doctor(
     for doc in doctors_info:
         await message.answer(
             text=await t.format_doctor_card(doc),
-            reply_markup=await doctor_delete_keyb(doc.id_doctor)
+            reply_markup=await doctor_edit_keyb(doc.id_doctor)
         )
 
 

@@ -32,7 +32,7 @@ async def doctor_id(callback: types.CallbackQuery, state: FSMContext):
     doctor_id = int(callback.data.split(':')[1])
     await callback.message.edit_text(
         text=await t.build_doctor_card(doctor_id),
-        reply_markup=await k.doctor_delete_keyb(doctor_id)
+        reply_markup=await k.doctor_edit_keyb(doctor_id)
     )
     await state.update_data(doctor_id=doctor_id)
 

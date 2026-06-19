@@ -24,11 +24,14 @@ async def buttons_with_all_doctors():
     ), 'Выберите врача'
 
 # Удаление врача + список врачей
-async def doctor_delete_keyb(doctor_id: int):
+async def doctor_edit_keyb(doctor_id: int):
     keyb = InlineKeyboardMarkup(
         inline_keyboard=[
+            [InlineKeyboardButton(text="✏️ ФИО", callback_data=f"edit_doctor:{doctor_id}:full_name")],
+            [InlineKeyboardButton(text="✏️ Кабинет", callback_data=f"edit_doctor:{doctor_id}:cabinet")],
+            [InlineKeyboardButton(text="✏️ Телефон", callback_data=f"edit_doctor:{doctor_id}:phone")],
+            [InlineKeyboardButton(text="✏️ Специализация", callback_data=f"edit_doctor:{doctor_id}:specialization")],
             [InlineKeyboardButton(text="❌ Удалить врача", callback_data=f"delete_doctor:{doctor_id}")],
-            [InlineKeyboardButton(text="✏️ Изменить кабинет", callback_data=f"change_cabinet:{doctor_id}")],
             [InlineKeyboardButton(text="🔙 К списку врачей", callback_data="doctor_search")]
         ]
     )
