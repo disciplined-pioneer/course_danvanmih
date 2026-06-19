@@ -33,18 +33,17 @@ async def patient_id(callback: types.CallbackQuery, state: FSMContext):
     patient_id = int(callback.data.split(':')[1])
     await callback.message.edit_text(
         text=await t.build_patient_card(patient_id),
-        reply_markup=await k.patient_delete_keyb()
+        reply_markup=await k.patient_delete_keyb(patient_id)
     )
     await state.update_data(patient_id=patient_id)
 
 
 # Обработка кнопки "Изменить адрес"
-@router.callback_query(F.data == "change_address")
+@router.callback_query(F.data.startswith("change_address:"))
 async def change_address(callback: types.CallbackQuery, state: FSMContext):
 
     await callback.answer()
-    data = await state.get_data()
-    patient_id = data.get('patient_id')
+    patient_id = int(callback.data.split(':')[1])
 
     msg = await callback.message.edit_text(
         text=t.new_address_text,
@@ -52,7 +51,7 @@ async def change_address(callback: types.CallbackQuery, state: FSMContext):
     )
 
     await state.set_state(u.AppointmentStates.new_address)
-    await state.update_data(last_id_message=msg.message_id)
+    await state.update_data(last_id_message=msg.message_id, patient_id=patient_id)
 
 
 # Обработка нового адреса
@@ -70,12 +69,11 @@ async def new_address(message: types.Message, state: FSMContext):
 
 
 # Удаление пациента
-@router.callback_query(F.data == "delete_patient")
+@router.callback_query(F.data.startswith("delete_patient:"))
 async def patient_delete(callback: types.CallbackQuery, state: FSMContext):
 
     # Удаление информации о докторе
-    data = await state.get_data()
-    patient_id = data.get('patient_id', None)
+    patient_id = int(callback.data.split(':')[1])
     name_patient, result = await u.delete_info_patient(patient_id)
     
     if result:
@@ -91,11 +89,10 @@ async def patient_delete(callback: types.CallbackQuery, state: FSMContext):
 
 
 # Обработка кнопки добавления приёма
-@router.callback_query(F.data == "add_appointment")
+@router.callback_query(F.data.startswith("add_appointment:"))
 async def add_appointment(callback: types.CallbackQuery, state: FSMContext):
 
-    data = await state.get_data()
-    patient_id = data.get('patient_id', None)
+    patient_id = int(callback.data.split(':')[1])
     keyb, text = await k.buttons_with_all_doctors(patient_id)
     await callback.message.edit_text(
         text=text,

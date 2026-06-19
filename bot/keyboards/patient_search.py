@@ -26,12 +26,12 @@ async def buttons_with_all_patients():
     ), 'Выберите пациента'
 
 # Удаление пациента + список пациентов
-async def patient_delete_keyb():
+async def patient_delete_keyb(patient_id: int):
     keyb = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="❌ Удалить пациента", callback_data=f"delete_patient")],
-            [InlineKeyboardButton(text="✏️ Изменить адрес", callback_data=f"change_address")],
-            [InlineKeyboardButton(text="➕ Добавить приём", callback_data=f"add_appointment")],
+            [InlineKeyboardButton(text="❌ Удалить пациента", callback_data=f"delete_patient:{patient_id:}")],
+            [InlineKeyboardButton(text="✏️ Изменить адрес", callback_data=f"change_address:{patient_id:}")],
+            [InlineKeyboardButton(text="➕ Добавить приём", callback_data=f"add_appointment:{patient_id:}")],
             [InlineKeyboardButton(text="🔙 К списку пациентов", callback_data="patient_search")]
         ]
     )

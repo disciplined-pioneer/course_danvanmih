@@ -32,18 +32,17 @@ async def doctor_id(callback: types.CallbackQuery, state: FSMContext):
     doctor_id = int(callback.data.split(':')[1])
     await callback.message.edit_text(
         text=await t.build_doctor_card(doctor_id),
-        reply_markup=await k.doctor_delete_keyb()
+        reply_markup=await k.doctor_delete_keyb(doctor_id)
     )
     await state.update_data(doctor_id=doctor_id)
 
 
 # Обработка кнопки "Изменить кабинет"
-@router.callback_query(F.data == "change_cabinet")
+@router.callback_query(F.data.startswith("change_cabinet:"))
 async def change_cabinet(callback: types.CallbackQuery, state: FSMContext):
 
     await callback.answer()
-    data = await state.get_data()
-    doctor_id = data.get('doctor_id')
+    doctor_id = int(callback.data.split(':')[1])
 
     msg = await callback.message.edit_text(
         text=t.new_cabinet_text,
@@ -69,12 +68,11 @@ async def new_cabinet(message: types.Message, state: FSMContext):
 
 
 # Удаление врача
-@router.callback_query(F.data == "delete_doctor")
+@router.callback_query(F.data.startswith("delete_doctor:"))
 async def doctor_delete(callback: types.CallbackQuery, state: FSMContext):
 
     # Удаление информации о докторе
-    data = await state.get_data()
-    doctor_id = data.get('doctor_id')
+    doctor_id = int(callback.data.split(':')[1])
     name_doctor, result = await u.delete_info_doctor(doctor_id)
     
     if result:

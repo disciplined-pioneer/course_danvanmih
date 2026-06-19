@@ -5,6 +5,9 @@ from aiogram.fsm.state import StatesGroup, State
 
 from core.bot import bot
 
+class DiagnosisStates(StatesGroup):
+    new_diagnosis = State()
+
 class PatientCreateStates(StatesGroup):
     full_name = State()
     address = State()

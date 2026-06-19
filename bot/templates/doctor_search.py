@@ -11,7 +11,6 @@ async def build_doctor_card(doctor_id: int) -> str:
 
     # расписание — ВСЕ записи
     schedules = await Schedules.filter(doctor_id=doctor_id)
-
     if schedules:
         schedule_text = ", ".join(
             f"{s.day_of_week} {s.start_time:%H:%M}-{s.end_time:%H:%M}"

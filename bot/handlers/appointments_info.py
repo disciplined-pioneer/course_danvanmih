@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 
 from bot.templates import appointments_info as t
 from bot.keyboards import appointments_info as k
-from utils import appointments_info as u
+from utils import add_patient as u
 
 from db.models.models import Appointments
 
