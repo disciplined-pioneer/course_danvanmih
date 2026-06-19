@@ -25,17 +25,51 @@ async def buttons_with_all_patients():
         ]
     ), 'Выберите пациента'
 
-# Удаление пациента + список пациентов
 async def patient_delete_keyb(patient_id: int):
-    keyb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="❌ Удалить пациента", callback_data=f"delete_patient:{patient_id:}")],
-            [InlineKeyboardButton(text="✏️ Изменить адрес", callback_data=f"change_address:{patient_id:}")],
-            [InlineKeyboardButton(text="➕ Добавить приём", callback_data=f"add_appointment:{patient_id:}")],
-            [InlineKeyboardButton(text="🔙 К списку пациентов", callback_data="patient_search")]
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="❌ Удалить пациента",
+                callback_data=f"delete_patient:{patient_id}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="✏️ ФИО",
+                callback_data=f"edit_patient:{patient_id}:full_name"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="✏️ Адрес",
+                callback_data=f"edit_patient:{patient_id}:address"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="✏️ Телефон",
+                callback_data=f"edit_patient:{patient_id}:phone"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="✏️ Дата рождения",
+                callback_data=f"edit_patient:{patient_id}:birth_date"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="➕ Добавить приём",
+                callback_data=f"add_appointment:{patient_id}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔙 К списку пациентов",
+                callback_data="patient_search"
+            )
         ]
-    )
-    return keyb
+    ])
 
 async def buttons_with_all_doctors(patient_id:int):
     doctors=await Doctors.all()

@@ -1,6 +1,21 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from db.models.models import Specializations, Doctors
 
+PATIENT_FIELDS = {
+    "full_name": {"label": "ФИО", "type": "text"},
+    "address": {"label": "Адрес", "type": "text"},
+    "birth_date": {"label": "Дата рождения", "type": "text"},
+    "phone": {"label": "Телефон", "type": "text"},
+}
+
+async def patient_edit_keyb(patient_id: int):
+    fields = build_edit_fields_keyboard(
+        patient_id,
+        PATIENT_FIELDS,
+        "edit_patient"
+    )
+
+    return InlineKeyboardMarkup(inline_keyboard=fields)
 
 DOCTOR_FIELDS = {
     "full_name": {

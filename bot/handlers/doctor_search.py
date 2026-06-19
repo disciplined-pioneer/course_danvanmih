@@ -5,7 +5,7 @@ from utils import doctor_search as u
 from bot.templates import doctor_search as t
 from bot.keyboards import doctor_search as k
 
-from db.models.models import Doctors, Schedules
+from db.models.models import Doctors, Schedules, Patients
 
 
 router = Router()
@@ -36,7 +36,8 @@ async def doctor_id(callback: types.CallbackQuery, state: FSMContext):
     )
     await state.update_data(doctor_id=doctor_id)
 
-@router.callback_query(F.data.startswith(("edit_doctor", "edit_schedule")))
+
+@router.callback_query(F.data.startswith(("edit_doctor", "edit_schedule", "edit_patient")))
 async def start_edit(callback: types.CallbackQuery, state: FSMContext):
 
     prefix, obj_id, field = callback.data.split(":")
@@ -45,6 +46,8 @@ async def start_edit(callback: types.CallbackQuery, state: FSMContext):
 
     if prefix == "edit_doctor":
         fields = k.DOCTOR_FIELDS
+    elif prefix == "edit_patient":
+        fields = k.PATIENT_FIELDS
     else:
         fields = k.SCHEDULE_FIELDS
 
@@ -80,6 +83,10 @@ async def process_edit_value(message: types.Message, state: FSMContext):
         fields = k.SCHEDULE_FIELDS
         model = Schedules
 
+    elif model == "edit_patient":
+        fields = k.PATIENT_FIELDS
+        model = Patients
+
     else:
         await message.answer("❌ Неизвестная модель")
         await state.clear()
@@ -99,6 +106,10 @@ async def process_edit_value(message: types.Message, state: FSMContext):
 
         elif field_type == "select":
             value = int(value)
+
+        elif field == "birth_date":
+            from datetime import datetime
+            value = datetime.strptime(value, "%Y-%m-%d").date()
 
     except Exception:
         await message.answer("❌ Неверный формат данных")
