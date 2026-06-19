@@ -24,6 +24,8 @@ class BotConfig(BaseSettings):
     TOKEN: str
     COMMANDS: list[BotCommand] = [
         BotCommand(command='start', description='Запустить бота 🚀'),
+        BotCommand(command='search_doctor', description='Поиск врача'),
+        BotCommand(command='search_patient', description='Поиск пациента'),
     ]
 
     class Config:
