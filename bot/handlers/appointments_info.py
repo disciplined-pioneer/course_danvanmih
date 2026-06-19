@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 
 from bot.templates import appointments_info as t
 from bot.keyboards import appointments_info as k
+from utils import appointments_info as u
 
 from db.models.models import Appointments
 
@@ -69,3 +70,29 @@ async def delete_appointment(callback: types.CallbackQuery, state: FSMContext):
         text=t.delete_app_text,
         reply_markup=k.back_user_keyb
     )
+
+
+# Обработка кнопки "Изменить диагноз"
+@router.callback_query(F.data == "change_diagnosis")
+async def change_diagnosis(callback: types.CallbackQuery, state: FSMContext):
+
+    msg = await callback.message.edit_text(
+        text='Введите новое значение диагноза',
+    )
+    await state.set_state(u.DiagnosisStates.new_diagnosis)
+    await state.update_data(last_id_message=msg.message_id)
+
+
+# Обработка нового номера диагноза
+@router.message(u.DiagnosisStates.new_diagnosis)
+async def new_diagnosis(message: types.Message, state: FSMContext):
+
+    await message.delete()
+    data = await state.get_data()
+    app_id = data.get('app_id')
+    
+    app_info = await Appointments.get(id_appointment=app_id)
+    await app_info.update(diagnosis=message.text.strip())
+    
+    await u.safe_edit(state, message.from_user.id, 'Диагноз был изменён', k.back_user_keyb)
+    await state.clear()
