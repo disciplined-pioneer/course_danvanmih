@@ -18,8 +18,9 @@ async def format_doctor_card(doctor) -> str:
         f"ФИО: {doctor.full_name}\n"
         f"Специализация: {spec_name}\n"
         f"Кабинет: {doctor.cabinet or '—'}\n"
+        f"График работы: {schedule_text}"
     )
-#        f"График работы: {schedule_text}"
+#        
 
 async def format_patient_card(patient) -> str:
     return (

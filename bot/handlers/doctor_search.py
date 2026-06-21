@@ -5,7 +5,7 @@ from utils import doctor_search as u
 from bot.templates import doctor_search as t
 from bot.keyboards import doctor_search as k
 
-from db.models.models import Doctors, Schedules, Patients
+from db.models.models import Doctors, Schedules, Patients, Specializations
 
 
 router = Router()
@@ -37,6 +37,7 @@ async def doctor_id(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(doctor_id=doctor_id)
 
 
+# Выбор редактирования
 @router.callback_query(F.data.startswith(("edit_doctor", "edit_schedule", "edit_patient")))
 async def start_edit(callback: types.CallbackQuery, state: FSMContext):
 
@@ -64,6 +65,8 @@ async def start_edit(callback: types.CallbackQuery, state: FSMContext):
         f'Введите новое значение для: "{field_info["label"]}"'
     )
 
+
+# Обработка нового значения
 @router.message(u.EditState.value)
 async def process_edit_value(message: types.Message, state: FSMContext):
 
@@ -78,6 +81,14 @@ async def process_edit_value(message: types.Message, state: FSMContext):
     if model == "edit_doctor":
         fields = k.DOCTOR_FIELDS
         model = Doctors
+
+        # Поиск и создание новой специализации
+        if field == 'specialization_id':
+            value = value.lower()
+            spec_info = await Specializations.get(name=value)
+            if not spec_info:
+                spec_info = await Specializations.create(name=value)
+            value = spec_info.id_specialization
 
     elif model == "edit_schedule":
         fields = k.SCHEDULE_FIELDS
@@ -116,7 +127,6 @@ async def process_edit_value(message: types.Message, state: FSMContext):
         return
 
     await model.update_obj(obj_id, **{field: value})
-
     await message.answer(f"✅ Обновлено: {field_info['label']}")
 
     await state.clear()

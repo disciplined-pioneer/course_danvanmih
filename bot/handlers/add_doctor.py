@@ -219,7 +219,8 @@ async def confirm(call: types.CallbackQuery, state: FSMContext):
     # Добавляем новую специальность
     spec_id = data.get("specialization_id", None)
     if not spec_id:
-        spec = await Specializations.add(name=data.get("name_spec", None))
+        name_spec = data.get("name_spec", None).lower()
+        spec = await Specializations.add(name=name_spec)
         spec_id = spec.id_specialization
 
     # Добавляем доктора
